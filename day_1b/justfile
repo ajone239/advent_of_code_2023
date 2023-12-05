@@ -1,9 +1,6 @@
-build:
-  cargo build
+small:
+  @cat ./small_input | cargo run
+  @echo "Should be 281"
 
-small: build
-  @cat ./small_input | ../target/debug/day_1a
-  @echo "Should be 142"
-
-test: build
-  @cat ./input | ../target/debug/day_1a
+test:
+  @cat ./input | cargo run

@@ -8,7 +8,7 @@ fn main() -> io::Result<()> {
     for line in stdin.lines() {
         let line = line.unwrap();
         let Some((f, l)) = get_first_and_last(&line) else {
-            panic!();
+            continue;
         };
 
         // F is the tens place digit
@@ -24,57 +24,65 @@ fn main() -> io::Result<()> {
 }
 
 fn get_first_and_last(s: &str) -> Option<(u32, u32)> {
-    let iter = s.chars();
-    let riter = s.chars().rev();
+    let digits = find_digit_in_chars(s);
 
-    let first = find_digit_in_chars(iter);
-    let last = find_digit_in_chars(riter);
+    let first = *digits.first().unwrap();
+    let last = *digits.last().unwrap();
 
-    match (first, last) {
-        (Some(f), Some(l)) => Some((f, l)),
-        _ => None,
-    }
+    Some((first, last))
 }
 
-fn find_digit_in_chars<I>(i: I) -> Option<u32>
-where
-    I: Iterator<Item = char>,
-{
-    for c in i {
+fn find_digit_in_chars(s: &str) -> Vec<u32> {
+    let mut rv = vec![];
+
+    for i in 0..s.len() {
+        let c = s.chars().nth(i).unwrap();
+
         if c.is_ascii_digit() {
-            return Some(c as u32 - '0' as u32);
+            let digit = c as u32 - '0' as u32;
+            rv.push(digit);
+        } else if let Some(digit) = check_for_digit_strings(&s[i..]) {
+            rv.push(digit);
+        }
+    }
+    rv
+}
+
+fn check_for_digit_strings(s: &str) -> Option<u32> {
+    let digit_strs = [
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+    ];
+    for ds in digit_strs {
+        if check_for_str_in_slice(s, ds) {
+            let digit = string_to_digit(ds);
+            return Some(digit);
         }
     }
     None
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use rstest::rstest;
+fn check_for_str_in_slice(main_str: &str, pattern: &str) -> bool {
+    let pattern_len = pattern.len();
 
-    #[rstest]
-    #[case("1abc2", Some(1))]
-    #[case("pqr3stu8vwx", Some(3))]
-    #[case("a1b2c3d4e5f", Some(1))]
-    #[case("treb7uchet", Some(7))]
-    #[case("trebuchet", None)]
-    fn test_find_digit_in_chars(#[case] test_string: &str, #[case] expected_val: Option<u32>) {
-        let iter = test_string.chars();
-
-        assert_eq!(find_digit_in_chars(iter), expected_val);
+    if main_str.len() < pattern_len {
+        return false;
     }
 
-    #[rstest]
-    #[case("1abc2", Some((1, 2)))]
-    #[case("pqr3stu8vwx", Some((3, 8)))]
-    #[case("a1b2c3d4e5f", Some((1, 5)))]
-    #[case("treb7uchet", Some((7, 7)))]
-    #[case("trebuchet", None)]
-    fn test_get_first_and_last(
-        #[case] test_string: &str,
-        #[case] expected_val: Option<(u32, u32)>,
-    ) {
-        assert_eq!(get_first_and_last(test_string), expected_val);
+    &main_str[..pattern_len] == pattern
+}
+
+fn string_to_digit(s: &str) -> u32 {
+    match s {
+        "zero" => 0,
+        "one" => 1,
+        "two" => 2,
+        "three" => 3,
+        "four" => 4,
+        "five" => 5,
+        "six" => 6,
+        "seven" => 7,
+        "eight" => 8,
+        "nine" => 9,
+        &_ => panic!(),
     }
 }
