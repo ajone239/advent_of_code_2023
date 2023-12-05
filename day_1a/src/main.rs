@@ -7,7 +7,7 @@ fn main() -> io::Result<()> {
 
     for line in stdin.lines() {
         let line = line.unwrap();
-        let Some((f, l)) = get_first_and_last(&line) else {
+        let Some((f, l)) = get_first_and_last2(&line) else {
             panic!();
         };
 
@@ -21,6 +21,23 @@ fn main() -> io::Result<()> {
     println!("Total: {}", total);
 
     Ok(())
+}
+
+fn get_first_and_last2(s: &str) -> Option<(u32, u32)> {
+    let mut digits = s.chars().filter(|c| c.is_ascii_digit()).map(|c| {
+        println!("here {}", c);
+        c as u32 - '0' as u32
+    });
+
+    let Some(first) = digits.next() else {
+        return None;
+    };
+
+    let last = digits.last().unwrap_or(first);
+
+    println!("=> {}:{}", first, last);
+
+    Some((first, last))
 }
 
 fn get_first_and_last(s: &str) -> Option<(u32, u32)> {
