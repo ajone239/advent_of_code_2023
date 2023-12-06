@@ -3,20 +3,12 @@ use std::{cmp, io};
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
 
-    let true_red = 12;
-    let true_green = 13;
-    let true_blue = 14;
-
     let games = stdin
         .lines()
         .map(|l| l.unwrap())
         .map(|l| Game::new_from_string(&l));
 
-    let good_game_ids = games
-        .filter(|g| g.red <= true_red && g.green <= true_green && g.blue <= true_blue)
-        .map(|g| g.id);
-
-    let total: u32 = good_game_ids.sum();
+    let total: u32 = games.map(|g| g.red * g.green * g.blue).sum();
 
     println!("Total: {}", total);
 
@@ -24,7 +16,6 @@ fn main() -> io::Result<()> {
 }
 
 struct Game {
-    id: u32,
     red: u32,
     green: u32,
     blue: u32,
@@ -34,12 +25,6 @@ impl Game {
     fn new_from_string(s: &str) -> Self {
         // EX. Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
         let parts: Vec<&str> = s.split(':').collect();
-
-        let game = parts[0];
-        let game: Vec<&str> = game.split(' ').collect();
-        let game_id = game[1];
-
-        let id = game_id.parse::<u32>().unwrap();
 
         let rounds = parts[1];
 
@@ -66,12 +51,7 @@ impl Game {
             }
         }
 
-        Self {
-            id,
-            red,
-            green,
-            blue,
-        }
+        Self { red, green, blue }
     }
 }
 
@@ -86,7 +66,6 @@ mod tests {
 
         let game = Game::new_from_string(s);
 
-        assert_eq!(game.id, 1);
         assert_eq!(game.red, 4);
         assert_eq!(game.green, 2);
         assert_eq!(game.blue, 6);
