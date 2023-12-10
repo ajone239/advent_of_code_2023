@@ -1,4 +1,4 @@
-use std::{fmt::Debug, io};
+use std::{collections::HashMap, fmt::Debug, io};
 
 fn main() {
     let stdin = io::stdin();
@@ -43,16 +43,30 @@ fn main() {
         }
     }
 
-    let total: u64 = parts
-        .iter()
-        .filter(|p| p.is_part_good(&lines))
-        .map(|p| p.part_number)
-        .sum();
+    let mut unmatched_gears: HashMap<Point, Part> = HashMap::new();
+
+    let mut total: u64 = 0;
+
+    for p in parts {
+        let Some(point) = p.is_gear_ratio(&lines) else {
+            continue;
+        };
+
+        let other_part = match unmatched_gears.get(&point) {
+            Some(other_part) => other_part,
+            None => {
+                unmatched_gears.insert(point, p);
+                continue;
+            }
+        };
+
+        total += p.part_number * other_part.part_number;
+    }
 
     println!("Total: {}", total);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Hash, Eq, PartialEq)]
 struct Point {
     x: usize,
     y: usize,
@@ -66,56 +80,51 @@ struct Part {
 }
 
 impl Part {
-    fn is_part_good(&self, scheme: &Vec<Vec<char>>) -> bool {
+    fn is_gear_ratio(&self, scheme: &Vec<Vec<char>>) -> Option<Point> {
         //     North
         //     .....
         // West.###. East
         //     .....
         //     South
         //
+        let is_c_good = |c: char| -> bool { c == '*' };
+
         let lx = if self.left.x == 0 { 0 } else { self.left.x - 1 };
-
-        let is_c_good = |c: char| -> bool { c != '.' && !c.is_ascii_digit() };
-
-        for j in (lx)..=(self.right.x + 1) {
+        let directions = [
             // North
-            let i = self.left.y.overflowing_sub(1).0;
-            if let Some(c) = read_checked(&scheme, i, j) {
-                if is_c_good(c) {
-                    return true;
-                }
-            }
-
+            self.left.y.overflowing_sub(1).0,
             // South
-            let i = self.left.y + 1;
-            if let Some(c) = read_checked(&scheme, i, j) {
-                if is_c_good(c) {
-                    return true;
+            self.left.y + 1,
+        ];
+        for j in (lx)..=(self.right.x + 1) {
+            for i in directions {
+                if let Some(c) = read_checked(&scheme, i, j) {
+                    if is_c_good(c) {
+                        return Some(Point { x: i, y: j });
+                    }
                 }
             }
         }
 
         let ly = if self.left.y == 0 { 0 } else { self.left.y - 1 };
 
-        for i in (ly)..=(self.right.y + 1) {
+        let directions = [
             // West
-            let j = self.left.x.overflowing_sub(1).0;
-            if let Some(c) = read_checked(&scheme, i, j) {
-                if is_c_good(c) {
-                    return true;
-                }
-            }
-
+            self.left.x.overflowing_sub(1).0,
             // East
-            let j = self.right.x + 1;
-            if let Some(c) = read_checked(&scheme, i, j) {
-                if is_c_good(c) {
-                    return true;
+            self.right.x + 1,
+        ];
+        for i in (ly)..=(self.right.y + 1) {
+            for j in directions {
+                if let Some(c) = read_checked(&scheme, i, j) {
+                    if is_c_good(c) {
+                        return Some(Point { x: i, y: j });
+                    }
                 }
             }
         }
 
-        false
+        None
     }
 }
 
