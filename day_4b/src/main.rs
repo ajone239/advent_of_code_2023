@@ -3,11 +3,32 @@ use std::{collections::HashSet, io};
 fn main() {
     let stdin = io::stdin();
 
-    let mut cards: Vec<Card> = stdin
+    let cards: Vec<Card> = stdin
         .lines()
         .map(|l| Card::new_from_line(&l.unwrap()))
         .collect();
 
+    let total = expand_card_copies_2(cards);
+
+    println!("Total: {}", total);
+}
+
+fn expand_card_copies_2(mut cards: Vec<Card>) -> u32 {
+    for i in 0..cards.len() {
+        let points = cards[i].count_matches();
+
+        for j in 0..points {
+            let card_id: usize = i + j as usize + 1;
+            if card_id > cards.len() {
+                break;
+            }
+            cards[card_id].copies += cards[i].copies;
+        }
+    }
+    cards.into_iter().map(|c| c.copies).sum()
+}
+
+fn expand_card_copies(mut cards: Vec<Card>) -> u32 {
     let mut starting_point = 0;
     let init_len = cards.len();
     loop {
@@ -32,13 +53,13 @@ fn main() {
         starting_point = curr_len;
     }
 
-    let total = cards.len();
-    println!("Total: {}", total);
+    return cards.len() as u32;
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 struct Card {
     id: u32,
+    copies: u32,
     winning_nums: HashSet<u32>,
     player_nums: HashSet<u32>,
 }
@@ -70,6 +91,7 @@ impl Card {
 
         Self {
             id,
+            copies: 1,
             winning_nums,
             player_nums,
         }
@@ -99,6 +121,7 @@ mod tests {
 
         let expected_card = Card {
             id: 1,
+            copies: 1,
             winning_nums: HashSet::from([41, 48, 83, 86, 17]),
             player_nums: HashSet::from([83, 86, 6, 31, 17, 9, 48, 53]),
         };
@@ -110,6 +133,7 @@ mod tests {
     fn test_card_cal_point_value() {
         let card = Card {
             id: 1,
+            copies: 1,
             winning_nums: HashSet::from([41, 48, 83, 86, 17]),
             player_nums: HashSet::from([83, 86, 6, 31, 17, 9, 48, 53]),
         };

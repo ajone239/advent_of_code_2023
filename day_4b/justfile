@@ -4,3 +4,4 @@ small:
 
 test:
   @cat input | cargo run
+  @echo "should be 14814534"
