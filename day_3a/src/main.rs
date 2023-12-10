@@ -22,10 +22,13 @@ fn main() {
                         part_start = Some(Point { x: j, y: i });
                     }
                 }
-            } else {
+            }
+
+            if !c.is_ascii_digit() || j == line.len() - 1 {
                 if let (Some(number), Some(start)) = (part_number.take(), part_start.take()) {
                     // TODO: fix for edge corner case
                     let j = if j == 0 { line.len() } else { j };
+
                     let end = Point { x: j - 1, y: i };
                     let number: u64 = number.parse().unwrap();
 
@@ -72,11 +75,13 @@ impl Part {
         //
         let lx = if self.left.x == 0 { 0 } else { self.left.x - 1 };
 
+        let is_c_good = |c: char| -> bool { c != '.' && !c.is_ascii_digit() };
+
         for j in (lx)..=(self.right.x + 1) {
             // North
             let i = self.left.y.overflowing_sub(1).0;
             if let Some(c) = read_checked(&scheme, i, j) {
-                if c != '.' {
+                if is_c_good(c) {
                     return true;
                 }
             }
@@ -84,7 +89,7 @@ impl Part {
             // South
             let i = self.left.y + 1;
             if let Some(c) = read_checked(&scheme, i, j) {
-                if c != '.' {
+                if is_c_good(c) {
                     return true;
                 }
             }
@@ -96,7 +101,7 @@ impl Part {
             // West
             let j = self.left.x.overflowing_sub(1).0;
             if let Some(c) = read_checked(&scheme, i, j) {
-                if c != '.' {
+                if is_c_good(c) {
                     return true;
                 }
             }
@@ -104,7 +109,7 @@ impl Part {
             // East
             let j = self.right.x + 1;
             if let Some(c) = read_checked(&scheme, i, j) {
-                if c != '.' {
+                if is_c_good(c) {
                     return true;
                 }
             }
