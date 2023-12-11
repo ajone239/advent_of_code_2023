@@ -1,0 +1,6 @@
+small:
+  @cat small_input | cargo run
+  @echo "Should be 35"
+
+test:
+  @cat input | cargo run
