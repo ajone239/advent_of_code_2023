@@ -14,6 +14,16 @@ fn main() {
         .map(|s| s.parse::<i64>().unwrap())
         .collect();
 
+    let seed_ranges: Vec<Range<i64>> = seeds
+        .chunks(2)
+        .into_iter()
+        .map(|v| {
+            let src = v[0];
+            let range = v[1];
+            src..src + range
+        })
+        .collect();
+
     let mut range = vec![];
     let mut ranges = vec![];
 
@@ -41,9 +51,13 @@ fn main() {
         .map(|rs| Entry::new_from_str_vec(rs))
         .collect();
 
-    let min_location = seeds
+    let min_location = seed_ranges
         .into_iter()
-        .map(|s| entries.iter().fold(s, |seed, entry| entry.map(seed)))
+        .map(|sr| {
+            sr.map(|s| entries.iter().fold(s, |seed, entry| entry.map(seed)))
+                .min()
+                .unwrap()
+        })
         .min()
         .unwrap();
 
