@@ -24,18 +24,16 @@ fn main() -> io::Result<()> {
 }
 
 fn get_first_and_last2(s: &str) -> Option<(u32, u32)> {
-    let mut digits = s.chars().filter(|c| c.is_ascii_digit()).map(|c| {
-        println!("here {}", c);
-        c as u32 - '0' as u32
-    });
+    let mut digits = s
+        .chars()
+        .filter(|c| c.is_ascii_digit())
+        .map(|c| c as u32 - '0' as u32);
 
     let Some(first) = digits.next() else {
         return None;
     };
 
     let last = digits.last().unwrap_or(first);
-
-    println!("=> {}:{}", first, last);
 
     Some((first, last))
 }

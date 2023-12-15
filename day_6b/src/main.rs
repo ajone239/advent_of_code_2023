@@ -11,26 +11,25 @@ fn main() {
     let times = colon_then_fields(&times);
     let distances = colon_then_fields(&distances);
 
-    let races: Vec<Race> = times
-        .into_iter()
-        .zip(distances.into_iter())
-        .map(|r| Race::new(r))
-        .collect();
+    let time = times.join("").parse().unwrap();
+    let record_distance = distances.join("").parse().unwrap();
 
-    let total = races
-        .into_iter()
-        .map(|r| r.count_wins())
-        .fold(1, |acc, w| acc * w);
+    let race = Race {
+        time,
+        record_distance,
+    };
+
+    let total = race.count_wins();
 
     println!("Total: {}", total);
 }
 
-fn colon_then_fields(s: &str) -> Vec<i64> {
+fn colon_then_fields(s: &str) -> Vec<&str> {
     let fields: Vec<&str> = s.split(':').collect();
     let fields = fields[1];
     fields
         .split_ascii_whitespace()
-        .map(|f| f.parse().unwrap())
+        // .map(|f| f.parse().unwrap())
         .collect()
 }
 
