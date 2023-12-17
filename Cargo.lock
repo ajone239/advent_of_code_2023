@@ -93,6 +93,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "day_8b"
+version = "0.1.0"
+dependencies = [
+ "regex",
+]
+
+[[package]]
 name = "futures"
 version = "0.3.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
