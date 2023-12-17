@@ -1,16 +1,22 @@
-use std::{collections::HashMap, io};
+use std::{cmp::Ordering, collections::HashMap, io};
 
 fn main() {
     let stdin = io::stdin();
 
-    let players: Vec<Player> = stdin.lines().map(|l| Player::new(&l.unwrap())).collect();
+    let mut players: Vec<Player> = stdin.lines().map(|l| Player::new(&l.unwrap())).collect();
 
-    for p in players {
-        println!("{:?}", p);
-    }
+    players.sort_by(|a, b| a.hand.cmp(&b.hand));
+
+    let total: u64 = players
+        .into_iter()
+        .enumerate()
+        .map(|(i, p)| p.bid * (i as u64 + 1))
+        .sum();
+
+    println!("Total: {}", total);
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Player {
     bid: u64,
     hand: Hand,
@@ -31,10 +37,11 @@ impl Player {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd)]
 struct Hand {
     hand_str: String,
     hand: [Card; 5],
+    rank: HandRank,
 }
 
 impl Hand {
@@ -45,42 +52,78 @@ impl Hand {
             hand[i] = Card::new(c);
         }
 
+        let rank = HandRank::new(&hand);
+
         Self {
             hand_str: s.to_owned(),
             hand,
+            rank,
         }
-    }
-
-    fn rank(&self) -> HandRank {
-        let mut hand = HashMap::new();
-
-        for card in self.hand {
-            let card_count = hand.entry(card).or_insert(0);
-            *card_count += 1;
-        }
-
-        unimplemented!();
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.rank.cmp(&other.rank) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Equal => self.hand.cmp(&other.hand),
+            Ordering::Greater => Ordering::Greater,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum HandRank {
-    FiveOfAKind,
-    FourOfAKind,
-    FullHouse,
-    ThreeOfAKind,
-    TwoPair,
-    OnePair,
     HighCard,
+    OnePair,
+    TwoPair,
+    ThreeOfAKind,
+    FullHouse,
+    FourOfAKind,
+    FiveOfAKind,
+}
+
+impl HandRank {
+    fn new(hand: &[Card; 5]) -> HandRank {
+        let mut card_counts = HashMap::new();
+
+        for card in hand {
+            let card_count = card_counts.entry(card).or_insert(0);
+            *card_count += 1;
+        }
+
+        let mut card_counts: Vec<u64> = card_counts.iter().map(|(_, count)| *count).collect();
+
+        card_counts.sort_by(|a, b| b.cmp(&a));
+
+        let mut card_counts = card_counts.into_iter();
+
+        match card_counts.next().unwrap() {
+            5 => HandRank::FiveOfAKind,
+            4 => HandRank::FourOfAKind,
+            3 => match card_counts.next().unwrap() {
+                2 => HandRank::FullHouse,
+                1 => HandRank::ThreeOfAKind,
+                _ => unreachable!(),
+            },
+            2 => match card_counts.next().unwrap() {
+                2 => HandRank::TwoPair,
+                1 => HandRank::OnePair,
+                _ => unreachable!(),
+            },
+            1 => HandRank::HighCard,
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 enum Card {
-    Ace,
-    King,
-    Queen,
-    Jack,
     Num(u8),
+    Jack,
+    Queen,
+    King,
+    Ace,
 }
 
 impl Card {
