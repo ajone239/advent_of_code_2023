@@ -19,15 +19,11 @@ fn main() {
 }
 
 fn extend(seq: &Vec<i64>) -> i64 {
-    if seq.iter().all(|v| *v == 0) {
-        return 0;
+    if seq.windows(2).all(|w| w[0] == w[1]) {
+        return seq[0];
     }
 
-    let mut diff = vec![];
-
-    for i in 0..seq.len() - 1 {
-        diff.push(seq[i + 1] - seq[i]);
-    }
+    let diff = seq.windows(2).map(|w| w[1] - w[0]).collect();
 
     seq.iter().last().unwrap() + extend(&diff)
 }
