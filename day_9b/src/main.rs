@@ -9,6 +9,7 @@ fn main() {
         .map(|l| {
             l.split_ascii_whitespace()
                 .map(|s| s.parse::<i64>().unwrap())
+                .rev()
                 .collect::<Vec<i64>>()
         })
         .collect();
