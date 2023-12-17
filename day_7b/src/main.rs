@@ -86,15 +86,25 @@ enum HandRank {
 impl HandRank {
     fn new(hand: &[Card; 5]) -> HandRank {
         let mut card_counts = HashMap::new();
+        let mut joker_count = 0;
 
         for card in hand {
+            if *card == Card::Joker {
+                joker_count += 1;
+                continue;
+            }
             let card_count = card_counts.entry(card).or_insert(0);
             *card_count += 1;
         }
 
         let mut card_counts: Vec<u64> = card_counts.iter().map(|(_, count)| *count).collect();
 
-        card_counts.sort_by(|a, b| b.cmp(&a));
+        if card_counts.is_empty() {
+            card_counts.push(joker_count)
+        } else {
+            card_counts.sort_by(|a, b| b.cmp(&a));
+            card_counts[0] += joker_count;
+        }
 
         let mut card_counts = card_counts.into_iter();
 
@@ -119,8 +129,8 @@ impl HandRank {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 enum Card {
+    Joker,
     Num(u8),
-    Jack,
     Queen,
     King,
     Ace,
@@ -132,7 +142,7 @@ impl Card {
             'A' => Card::Ace,
             'K' => Card::King,
             'Q' => Card::Queen,
-            'J' => Card::Jack,
+            'J' => Card::Joker,
             'T' => Card::Num(10),
             '0'..='9' => Card::Num(c as u8 - '0' as u8),
             _ => unreachable!(),
